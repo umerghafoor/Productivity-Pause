@@ -1,7 +1,10 @@
 import psutil
 import time
-import tkinter as tk
-from tkinter import ttk
+import sys
+from PyQt6.QtCore import QTimer
+from PyQt6.QtGui import QStandardItemModel, QStandardItem
+from PyQt6.QtWidgets import QApplication, QMainWindow, QTreeView, QHeaderView, QVBoxLayout, QPushButton, QWidget
+
 
 def get_running_apps():
     running_apps = []
@@ -13,37 +16,51 @@ def get_running_apps():
             pass
     return running_apps
 
+
 def update_app_list():
     apps = get_running_apps()
-    app_list.delete(*app_list.get_children())
+    app_model.clear()
 
     current_time = int(time.time() - start_time)
 
     for app in apps:
-        app_list.insert("", tk.END, values=(app, current_time))
+        item = QStandardItem(app)
+        app_model.appendRow([item, QStandardItem(str(current_time))])
 
-    
-    root.after(100, update_app_list)
+    QTimer.singleShot(100, update_app_list)
+
 
 def quit_app():
-    root.destroy()
+    app.quit()
+
 
 # Main program
 start_time = time.time()
 
-root = tk.Tk()
-root.title("App Monitor")
+app = QApplication(sys.argv)
+
+window = QMainWindow()
+window.setWindowTitle("App Monitor")
 
 # Create GUI elements
-app_list = ttk.Treeview(root, columns=("App", "Time"),show="headings")
-app_list.heading("App", text="App")
-app_list.heading("Time", text="Time")
-app_list.pack()
+widget = QWidget()
+layout = QVBoxLayout(widget)
+window.setCentralWidget(widget)
 
-quit_button = tk.Button(root, text="Quit", command=quit_app)
-quit_button.pack()
+app_model = QStandardItemModel()
+app_list = QTreeView()
+app_list.setModel(app_model)
+app_list.setHeaderHidden(True)
+app_list.header().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+layout.addWidget(app_list)
+
+quit_button = QPushButton("Quit")
+quit_button.clicked.connect(quit_app)
+layout.addWidget(quit_button)
 
 # Start updating the app list
 update_app_list()
 
-root.mainloop()
+window.show()
+
+sys.exit(app.exec())
