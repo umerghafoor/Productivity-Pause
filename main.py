@@ -5,8 +5,13 @@ from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTreeView, QHeaderView, QVBoxLayout, QPushButton, QWidget
 
+app_start_times = {}
+
 
 def get_running_apps():
+    """
+    :return: The function `get_running_apps()` returns a list of names of currently running processes on the system.
+    """
     running_apps = []
     for proc in psutil.process_iter(['name']):
         try:
@@ -18,20 +23,42 @@ def get_running_apps():
 
 
 def update_app_list():
+    """
+    This function updates the time in the existing list of running apps.
+    """
     apps = get_running_apps()
-    app_model.clear()
+    current_time = time.time()
 
-    current_time = int(time.time() - start_time)
+    for row in range(app_model.rowCount()):
+        item = app_model.item(row, 0)
+        app_name = item.text()
+
+        if app_name in apps:
+            elapsed_time = int(current_time - app_start_times[app_name])
+            app_model.setItem(row, 1, QStandardItem(str(elapsed_time)))
+        else:
+            app_model.setItem(row, 1, QStandardItem(0))
 
     for app in apps:
-        item = QStandardItem(app)
-        app_model.appendRow([item, QStandardItem(str(current_time))])
+        if app not in app_start_times:
+            app_start_times[app] = current_time
 
-    QTimer.singleShot(100, update_app_list)
+            elapsed_time = int(current_time - app_start_times[app])
+            item = QStandardItem(app)
+            app_model.appendRow([item, QStandardItem(str(elapsed_time))])
 
 
 def quit_app():
     app.quit()
+
+
+def update_button_clicked():
+    update_app_list()
+
+
+def addtolist_button_clicked():
+    print(0)
+    # implement that it will take selected button from app_list and save it in text file
 
 
 # Main program
@@ -53,6 +80,16 @@ app_list.setModel(app_model)
 app_list.setHeaderHidden(True)
 app_list.header().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 layout.addWidget(app_list)
+
+addtolist_button = QPushButton("Add to Watch list")
+addtolist_button.clicked.connect(addtolist_button_clicked)
+layout.addWidget(addtolist_button)
+
+
+update_button = QPushButton("Update")
+update_button.clicked.connect(update_button_clicked)
+layout.addWidget(update_button)
+
 
 quit_button = QPushButton("Quit")
 quit_button.clicked.connect(quit_app)
