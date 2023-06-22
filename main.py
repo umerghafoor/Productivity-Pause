@@ -1,13 +1,14 @@
 import time
 import sys
-import constants
 import functions
+import constants
 
-from functions import get_running_apps
 from constants import watch_list_file
+from functions import get_running_apps, track_application_time
+
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
-from PyQt6.QtWidgets import QApplication, QMainWindow, QTreeView, QHeaderView, QVBoxLayout, QPushButton, QWidget
+from PyQt6.QtWidgets import QApplication, QMainWindow, QTreeView, QHeaderView, QVBoxLayout, QPushButton, QWidget, QLabel
 from PyQt6.QtWidgets import QStyledItemDelegate, QAbstractItemView
 
 
@@ -65,14 +66,7 @@ def update_button_clicked():
 def addtolist_button_clicked():
     selected_indexes = app_list.selectedIndexes()
     if selected_indexes:
-        selected_app = selected_indexes[0].data()
-        with open(watch_list_file, "r") as file:
-            watch_list = file.readlines()
-        if selected_app + "\n" not in watch_list:
-            with open(watch_list_file, "a") as file:
-                file.write(selected_app + "\n")
-        else:
-            print(f"{selected_app} is already in the watch list.")
+        track_application_time(selected_indexes[0].data())
 
 
 # Main program
@@ -97,6 +91,7 @@ app_list.setHeaderHidden(True)
 app_list.header().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 app_list.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
+layout.addWidget(QLabel("Runing Apps"))
 layout.addWidget(app_list)
 
 watched_app_list = QTreeView()
@@ -105,6 +100,7 @@ watched_app_list.setHeaderHidden(True)
 watched_app_list.header().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 watched_app_list.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
+layout.addWidget(QLabel("Watched Apps"))
 layout.addWidget(watched_app_list)
 
 

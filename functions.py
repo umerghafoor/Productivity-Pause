@@ -1,5 +1,8 @@
 
 import psutil
+import constants
+
+from constants import watch_list_file
 
 
 def get_running_apps():
@@ -14,3 +17,13 @@ def get_running_apps():
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
     return running_apps
+
+
+def track_application_time(selected_app):
+    with open(watch_list_file, "r") as file:
+        watch_list = file.readlines()
+    if selected_app + "\n" not in watch_list:
+        with open(watch_list_file, "a") as file:
+            file.write(selected_app + "\n")
+    else:
+        print(f"{selected_app} is already in the watch list.")

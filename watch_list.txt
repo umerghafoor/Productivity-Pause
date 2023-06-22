@@ -4,3 +4,4 @@ sqlwriter.exe
 fontdrvhost.exe
 csrss.exe
 setup.exe
+Widgets.exe
