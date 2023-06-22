@@ -1,9 +1,12 @@
 import psutil
 import time
 import sys
+
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTreeView, QHeaderView, QVBoxLayout, QPushButton, QWidget
+from PyQt6.QtWidgets import QStyledItemDelegate, QAbstractItemView
+
 
 app_start_times = {}
 
@@ -48,12 +51,22 @@ def update_app_list():
             app_model.appendRow([item, QStandardItem(str(elapsed_time))])
 
 
+def read_watched_list():
+    watched_app_model.clear()
+    with open("watch_list.txt", "r") as file:
+        lines = file.readlines()
+        for line in lines:
+            item = QStandardItem(line.strip())
+            watched_app_model.appendRow(item)
+
+
 def quit_app():
     app.quit()
 
 
 def update_button_clicked():
     update_app_list()
+    read_watched_list()
 
 
 def addtolist_button_clicked():
@@ -83,11 +96,24 @@ layout = QVBoxLayout(widget)
 window.setCentralWidget(widget)
 
 app_model = QStandardItemModel()
+watched_app_model = QStandardItemModel()
+
 app_list = QTreeView()
 app_list.setModel(app_model)
 app_list.setHeaderHidden(True)
 app_list.header().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+app_list.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+
 layout.addWidget(app_list)
+
+watched_app_list = QTreeView()
+watched_app_list.setModel(watched_app_model)
+watched_app_list.setHeaderHidden(True)
+watched_app_list.header().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+watched_app_list.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+
+layout.addWidget(watched_app_list)
+
 
 addtolist_button = QPushButton("Add to Watch list")
 addtolist_button.clicked.connect(addtolist_button_clicked)
