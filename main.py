@@ -57,8 +57,16 @@ def update_button_clicked():
 
 
 def addtolist_button_clicked():
-    print(0)
-    # implement that it will take selected button from app_list and save it in text file
+    selected_indexes = app_list.selectedIndexes()
+    if selected_indexes:
+        selected_app = selected_indexes[0].data()
+        with open("watch_list.txt", "r") as file:
+            watch_list = file.readlines()
+        if selected_app + "\n" not in watch_list:
+            with open("watch_list.txt", "a") as file:
+                file.write(selected_app + "\n")
+        else:
+            print(f"{selected_app} is already in the watch list.")
 
 
 # Main program
