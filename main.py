@@ -1,7 +1,9 @@
 import psutil
 import time
 import sys
+import constants
 
+from constants import watch_list_file
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTreeView, QHeaderView, QVBoxLayout, QPushButton, QWidget
@@ -52,8 +54,12 @@ def update_app_list():
 
 
 def read_watched_list():
+    """
+    This function reads the contents of a file called "watch_list.txt" and adds each line as an item to
+    the watched app list
+    """
     watched_app_model.clear()
-    with open("watch_list.txt", "r") as file:
+    with open(watch_list_file, "r") as file:
         lines = file.readlines()
         for line in lines:
             item = QStandardItem(line.strip())
@@ -73,10 +79,10 @@ def addtolist_button_clicked():
     selected_indexes = app_list.selectedIndexes()
     if selected_indexes:
         selected_app = selected_indexes[0].data()
-        with open("watch_list.txt", "r") as file:
+        with open(watch_list_file, "r") as file:
             watch_list = file.readlines()
         if selected_app + "\n" not in watch_list:
-            with open("watch_list.txt", "a") as file:
+            with open(watch_list_file, "a") as file:
                 file.write(selected_app + "\n")
         else:
             print(f"{selected_app} is already in the watch list.")

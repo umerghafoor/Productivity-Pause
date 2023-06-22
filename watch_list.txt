@@ -3,3 +3,4 @@ WUDFHost.exe
 sqlwriter.exe
 fontdrvhost.exe
 csrss.exe
+setup.exe
