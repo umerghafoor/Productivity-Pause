@@ -1,2 +1,4 @@
 QuickLook.exe,22
-Code.exe,32
+Code.exe,100
+chrome.exe,200
+msedge.exe,50

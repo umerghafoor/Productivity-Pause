@@ -4,55 +4,34 @@ import functions
 import constants
 
 from constants import watch_list_file
-from functions import get_running_apps, track_application_time, modify_duration
-
+from functions import get_running_apps, track_application_time, modify_duration, stop_tracking_application_time, update_app_list, read_watch_list
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTreeView, QHeaderView, QVBoxLayout, QPushButton, QWidget, QLabel, QLineEdit
 from PyQt6.QtWidgets import QStyledItemDelegate, QAbstractItemView
 
 
-app_start_times = {}
-
-
-def update_app_list():
+def update_data_to_model():
     """
-    This function updates the time in the existing list of running apps.
+    This function appends the updated data to the app_model.
     """
-    apps = get_running_apps()
-    current_time = time.time()
-
-    for row in range(app_model.rowCount()):
-        item = app_model.item(row, 0)
-        app_name = item.text()
-
-        if app_name in apps:
-            elapsed_time = int(current_time - app_start_times[app_name])
-            app_model.setItem(row, 1, QStandardItem(str(elapsed_time)))
-        else:
-            app_model.setItem(row, 1, QStandardItem(0))
-
-    for app in apps:
-        if app not in app_start_times:
-            app_start_times[app] = current_time
-
-            elapsed_time = int(current_time - app_start_times[app])
-            item = QStandardItem(app)
-            app_model.appendRow([item, QStandardItem(str(elapsed_time))])
+    updated_data = update_app_list()
+    app_model.clear()
+    for app_name, elapsed_time in updated_data.items():
+        item = QStandardItem(app_name)
+        app_model.appendRow([item, QStandardItem(str(elapsed_time))])
 
 
-def read_watched_list():
+def update_watched_app_model():
     """
-    This function reads the contents of a file called "watch_list.txt" and adds each line as an item to
-    the watched app list
+    This function appends the items from the watch list to the watched_app_model.
     """
+    watch_list = read_watch_list()
     watched_app_model.clear()
-    with open(watch_list_file, "r") as file:
-        lines = file.readlines()
-        for line in lines:
-            app_name, duration = line.strip().split(",")
-            watched_app_model.appendRow(
-                [QStandardItem(app_name), QStandardItem(duration)])
+    for app_name, duration in watch_list:
+        item = QStandardItem(app_name)
+        item_duration = QStandardItem(duration)
+        watched_app_model.appendRow([item, item_duration])
 
 
 def quit_app():
@@ -60,8 +39,8 @@ def quit_app():
 
 
 def update_button_clicked():
-    update_app_list()
-    read_watched_list()
+    update_data_to_model()
+    update_watched_app_model()
 
 
 def addtolist_button_clicked():
@@ -77,6 +56,12 @@ def modify_time_button_clicked():
         print(duration)
         if selected_indexes:
             modify_duration(selected_indexes[0].data(), duration)
+
+
+def removefromlist_button_clicked():
+    selected_indexes = watched_app_list.selectedIndexes()
+    if selected_indexes:
+        stop_tracking_application_time(selected_indexes[0].data())
 
 
 # Main program
@@ -117,6 +102,10 @@ layout.addWidget(watched_app_list)
 addtolist_button = QPushButton("Add to Watch list")
 addtolist_button.clicked.connect(addtolist_button_clicked)
 layout.addWidget(addtolist_button)
+
+removefromlist_button = QPushButton("Remove from Watch list")
+removefromlist_button.clicked.connect(removefromlist_button_clicked)
+layout.addWidget(removefromlist_button)
 
 
 update_button = QPushButton("Update")
