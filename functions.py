@@ -24,9 +24,16 @@ def sort_running_apps(running_apps):
     """
     This function sorts the watched apps from the watchlist and places them at the top of the running_apps list.
     """
+    running_apps.sort()
     watched_apps = read_watch_list()
-    print(watched_apps)
-    print(running_apps)
+    sorted_apps = []
+    for app in watched_apps:
+        print(app[0])
+        if app[0] in running_apps:
+            running_apps.remove(app[0])
+            print(app)
+            running_apps.insert(0, app[0])
+    return sorted_apps
 
 
 def get_running_apps():
