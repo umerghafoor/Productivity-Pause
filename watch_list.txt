@@ -1,7 +1,2 @@
-svchost.exe
-WUDFHost.exe
-sqlwriter.exe
-fontdrvhost.exe
-csrss.exe
-setup.exe
-Widgets.exe
+QuickLook.exe,22
+Code.exe,32

@@ -4,11 +4,11 @@ import functions
 import constants
 
 from constants import watch_list_file
-from functions import get_running_apps, track_application_time
+from functions import get_running_apps, track_application_time, modify_duration
 
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
-from PyQt6.QtWidgets import QApplication, QMainWindow, QTreeView, QHeaderView, QVBoxLayout, QPushButton, QWidget, QLabel
+from PyQt6.QtWidgets import QApplication, QMainWindow, QTreeView, QHeaderView, QVBoxLayout, QPushButton, QWidget, QLabel, QLineEdit
 from PyQt6.QtWidgets import QStyledItemDelegate, QAbstractItemView
 
 
@@ -50,8 +50,9 @@ def read_watched_list():
     with open(watch_list_file, "r") as file:
         lines = file.readlines()
         for line in lines:
-            item = QStandardItem(line.strip())
-            watched_app_model.appendRow(item)
+            app_name, duration = line.strip().split(",")
+            watched_app_model.appendRow(
+                [QStandardItem(app_name), QStandardItem(duration)])
 
 
 def quit_app():
@@ -67,6 +68,15 @@ def addtolist_button_clicked():
     selected_indexes = app_list.selectedIndexes()
     if selected_indexes:
         track_application_time(selected_indexes[0].data())
+
+
+def modify_time_button_clicked():
+    selected_indexes = watched_app_list.selectedIndexes()
+    if modify_time_value.text().isdecimal():
+        duration = int(modify_time_value.text())
+        print(duration)
+        if selected_indexes:
+            modify_duration(selected_indexes[0].data(), duration)
 
 
 # Main program
@@ -113,6 +123,12 @@ update_button = QPushButton("Update")
 update_button.clicked.connect(update_button_clicked)
 layout.addWidget(update_button)
 
+modify_time_value = QLineEdit()
+layout.addWidget(modify_time_value)
+
+modify_time_button = QPushButton("Modify time")
+modify_time_button.clicked.connect(modify_time_button_clicked)
+layout.addWidget(modify_time_button)
 
 quit_button = QPushButton("Quit")
 quit_button.clicked.connect(quit_app)
