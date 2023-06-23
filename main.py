@@ -3,30 +3,29 @@ import sys
 import functions
 import constants
 
-from constants import watch_list_file
+from constants import watch_list_file, icon
 from functions import get_running_apps, track_application_time, modify_duration, stop_tracking_application_time, update_app_list, read_watch_list
-from PyQt6.QtCore import QTimer
-from PyQt6.QtGui import QStandardItemModel, QStandardItem
+from functions import get_application_usage_time, get_time_limit
+from PyQt6.QtCore import QTimer, Qt, QEvent
+from PyQt6.QtGui import QStandardItemModel, QStandardItem, QIcon, QAction
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTreeView, QHeaderView, QVBoxLayout, QPushButton, QWidget, QLabel, QLineEdit
-from PyQt6.QtWidgets import QStyledItemDelegate, QAbstractItemView
+from PyQt6.QtWidgets import QStyledItemDelegate, QAbstractItemView, QSystemTrayIcon, QMenu
 
 
-def update_data_to_model():
+def update_data_to_model(app_data):
     """
     This function appends the updated data to the app_model.
     """
-    updated_data = update_app_list()
     app_model.clear()
-    for app_name, elapsed_time in updated_data.items():
+    for app_name, elapsed_time in app_data.items():
         item = QStandardItem(app_name)
         app_model.appendRow([item, QStandardItem(str(elapsed_time))])
 
 
-def update_watched_app_model():
+def update_watched_app_model(watch_list):
     """
     This function appends the items from the watch list to the watched_app_model.
     """
-    watch_list = read_watch_list()
     watched_app_model.clear()
     for app_name, duration in watch_list:
         item = QStandardItem(app_name)
@@ -34,13 +33,31 @@ def update_watched_app_model():
         watched_app_model.appendRow([item, item_duration])
 
 
+def check_the_limit(watch_list):
+    for app_name, duration in watch_list:
+        if get_application_usage_time(app_name) > get_time_limit(app_name):
+            print("true")
+
+
+def restoreApp():
+    window.show()
+
+
+def minimizeApp():
+    window.hide()
+
+
 def quit_app():
     app.quit()
 
 
 def update_button_clicked():
-    update_data_to_model()
-    update_watched_app_model()
+    watch_list = read_watch_list()
+    app_data = update_app_list()
+
+    update_data_to_model(app_data)
+    update_watched_app_model(watch_list)
+    check_the_limit(watch_list)
 
 
 def addtolist_button_clicked():
@@ -119,13 +136,25 @@ modify_time_button = QPushButton("Modify time")
 modify_time_button.clicked.connect(modify_time_button_clicked)
 layout.addWidget(modify_time_button)
 
-quit_button = QPushButton("Quit")
-quit_button.clicked.connect(quit_app)
-layout.addWidget(quit_button)
+minimize_button = QPushButton("Minimize App")
+minimize_button.clicked.connect(minimizeApp)
+layout.addWidget(minimize_button)
 
 # Start updating the app list
-update_app_list()
+update_button_clicked()
 
-window.show()
+# Move to System tray
+tray_icon = QSystemTrayIcon(QIcon(icon), parent=app)
+tray_icon.activated.connect(restoreApp)
+
+tray_menu = QMenu()
+exit_action = QAction("Exit", parent=tray_menu)
+tray_menu.addAction(exit_action)
+
+tray_icon.setContextMenu(tray_menu)
+
+exit_action.triggered.connect(quit_app)
+
+tray_icon.show()
 
 sys.exit(app.exec())

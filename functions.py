@@ -6,6 +6,9 @@ import constants
 from constants import watch_list_file
 
 
+app_start_times = {}
+
+
 def read_watch_list():
     """
     This function reads the contents of a file called "watch_list.txt" and returns a list of tuples
@@ -28,10 +31,8 @@ def sort_running_apps(running_apps):
     watched_apps = read_watch_list()
     sorted_apps = []
     for app in watched_apps:
-        print(app[0])
         if app[0] in running_apps:
             running_apps.remove(app[0])
-            print(app)
             running_apps.insert(0, app[0])
     return sorted_apps
 
@@ -102,25 +103,6 @@ def modify_duration(app_name, new_duration):
         file.writelines(modified_lines)
 
 
-def get_application_usage_time(application_name):
-    """
-    This function reads the watch list and returns the usage time for the selected application.
-    It takes the application name as input and returns the corresponding usage time in seconds.
-    """
-    with open(watch_list_file, "r") as file:
-        lines = file.readlines()
-
-    for line in lines:
-        if line.startswith(application_name):
-            _, duration = line.strip().split(",")
-            return int(duration)
-
-    return 0
-
-
-app_start_times = {}
-
-
 def update_app_list():
     """
     This function updates the time in the existing list of running apps and returns the updated data as a dictionary.
@@ -138,3 +120,28 @@ def update_app_list():
             updated_data[app_name] = 0
 
     return updated_data
+
+
+def get_application_usage_time(application_name):
+    """
+    This function reads the watch list and returns the usage time for the selected application.
+    It takes the application name as input and returns the corresponding usage time in seconds.
+    """
+    updated_data = update_app_list()
+    return updated_data.get(application_name, 0)
+
+
+def get_time_limit(application_name):
+    """
+    This function reads the watch list and returns the time limit for the selected application.
+    It takes the application name as input and returns the corresponding time limit in seconds.
+    """
+    with open(watch_list_file, "r") as file:
+        lines = file.readlines()
+
+    for line in lines:
+        if line.startswith(application_name):
+            _, time_limit = line.strip().split(",")
+            return int(time_limit)
+
+    return 0
