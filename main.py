@@ -6,10 +6,12 @@ import constants
 from constants import watch_list_file, icon
 from functions import get_running_apps, track_application_time, modify_duration, stop_tracking_application_time, update_app_list, read_watch_list
 from functions import get_application_usage_time, get_time_limit
-from PyQt6.QtCore import QTimer, Qt, QEvent
+from PyQt6.QtCore import QTimer, Qt, QTimer
 from PyQt6.QtGui import QStandardItemModel, QStandardItem, QIcon, QAction
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTreeView, QHeaderView, QVBoxLayout, QPushButton, QWidget, QLabel, QLineEdit
-from PyQt6.QtWidgets import QStyledItemDelegate, QAbstractItemView, QSystemTrayIcon, QMenu
+from PyQt6.QtWidgets import QStyledItemDelegate, QAbstractItemView, QSystemTrayIcon, QMenu, QMessageBox
+
+ignore_list = []
 
 
 def update_data_to_model(app_data):
@@ -33,10 +35,30 @@ def update_watched_app_model(watch_list):
         watched_app_model.appendRow([item, item_duration])
 
 
+def on_popup_finished(result, app_name):
+    if result == QMessageBox.StandardButton.Close:
+        ignore_list.append(app_name)
+        print(ignore_list)
+
+
 def check_the_limit(watch_list):
     for app_name, duration in watch_list:
         if get_application_usage_time(app_name) > get_time_limit(app_name):
-            print("true")
+            if app_name not in ignore_list:
+                popup = QMessageBox()
+                popup.setWindowTitle("Time to close " + app_name)
+                popup.setText("Its time to close the app take some rest!")
+
+                popup.setStandardButtons(QMessageBox.StandardButton.Close)
+                popup.finished.connect(
+                    lambda result, app_name=app_name: on_popup_finished(result, app_name))
+                popup.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
+
+                popup.exec()
+                popup.setModal(False)
+                popup.show()
+            else:
+                print(1234)
 
 
 def restoreApp():
@@ -140,19 +162,24 @@ minimize_button = QPushButton("Minimize App")
 minimize_button.clicked.connect(minimizeApp)
 layout.addWidget(minimize_button)
 
-# Start updating the app list
-update_button_clicked()
+# Start Updating in Loop
+timer = QTimer()
+timer.setInterval(10000)
+timer.timeout.connect(lambda: update_button_clicked())
+timer.start()
 
 # Move to System tray
 tray_icon = QSystemTrayIcon(QIcon(icon), parent=app)
-tray_icon.activated.connect(restoreApp)
 
 tray_menu = QMenu()
+settings_action = QAction("Settings", parent=tray_menu)
 exit_action = QAction("Exit", parent=tray_menu)
+tray_menu.addAction(settings_action)
 tray_menu.addAction(exit_action)
 
 tray_icon.setContextMenu(tray_menu)
 
+settings_action.triggered.connect(restoreApp)
 exit_action.triggered.connect(quit_app)
 
 tray_icon.show()
