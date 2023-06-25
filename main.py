@@ -16,28 +16,7 @@ app_autostart_enabled = False
 settings_dialog = None
 
 
-def enable_autostart():
-    # Get the path of the script
-    script_path = os.path.abspath(__file__)
 
-    # Create the desktop entry file
-    desktop_entry_path = os.path.expanduser("~/.config/autostart/app_monitor.desktop")
-    desktop_entry_content = f'''[Desktop Entry]
-Type=Application
-Exec=python3 "{script_path}"
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true
-Name[en_US]=App Monitor
-Name=App Monitor
-Comment[en_US]=App Monitor application
-Comment=App Monitor application
-'''
-    with open(desktop_entry_path, "w") as file:
-        file.write(desktop_entry_content)
-
-    # Show success message
-    QMessageBox.information(window, "Auto-Start Enabled", "App Monitor has been set to auto-start on login.")
 
 
 def autostart_checkbox_state_changed(state):
