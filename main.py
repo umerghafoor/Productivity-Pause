@@ -1,5 +1,5 @@
 import time
-import sys
+import sys, os
 import functions
 import constants
 
@@ -8,11 +8,65 @@ from functions import get_running_apps, track_application_time, modify_duration,
 from functions import get_application_usage_time, get_time_limit
 from PyQt6.QtCore import QTimer, Qt, QTimer
 from PyQt6.QtGui import QStandardItemModel, QStandardItem, QIcon, QAction
-from PyQt6.QtWidgets import QApplication, QMainWindow, QTreeView, QHeaderView, QVBoxLayout, QPushButton, QWidget, QLabel, QLineEdit
-from PyQt6.QtWidgets import QStyledItemDelegate, QAbstractItemView, QSystemTrayIcon, QMenu, QMessageBox
-
+# from PyQt6.QtWidgets import QApplication, QMainWindow, QTreeView, QHeaderView, QVBoxLayout, QPushButton, QWidget, QLabel, QLineEdit
+# from PyQt6.QtWidgets import QStyledItemDelegate, QAbstractItemView, QSystemTrayIcon, QMenu, QMessageBox
+from PyQt6.QtWidgets import *
 ignore_list = []
+app_autostart_enabled = False
+settings_dialog = None
 
+
+def enable_autostart():
+    # Get the path of the script
+    script_path = os.path.abspath(__file__)
+
+    # Create the desktop entry file
+    desktop_entry_path = os.path.expanduser("~/.config/autostart/app_monitor.desktop")
+    desktop_entry_content = f'''[Desktop Entry]
+Type=Application
+Exec=python3 "{script_path}"
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name[en_US]=App Monitor
+Name=App Monitor
+Comment[en_US]=App Monitor application
+Comment=App Monitor application
+'''
+    with open(desktop_entry_path, "w") as file:
+        file.write(desktop_entry_content)
+
+    # Show success message
+    QMessageBox.information(window, "Auto-Start Enabled", "App Monitor has been set to auto-start on login.")
+
+
+def autostart_checkbox_state_changed(state):
+    global app_autostart_enabled
+    app_autostart_enabled = state == Qt.CheckState.Checked
+
+
+def open_settings_dialog():
+    global settings_dialog
+    if not settings_dialog:
+        settings_dialog = QDialog(window)
+        settings_dialog.setWindowTitle("Settings")
+        layout = QVBoxLayout(settings_dialog)
+
+        autostart_checkbox = QCheckBox("Auto-Start on Login")
+        autostart_checkbox.stateChanged.connect(autostart_checkbox_state_changed)
+        layout.addWidget(autostart_checkbox)
+
+        settings_dialog.setLayout(layout)
+
+    settings_dialog.exec()
+
+
+def quit_app():
+    if not app_autostart_enabled:
+        desktop_entry_path = os.path.expanduser("~/.config/autostart/app_monitor.desktop")
+        if os.path.exists(desktop_entry_path):
+            os.remove(desktop_entry_path)
+    app.quit()
 
 def update_data_to_model(app_data):
     """
@@ -162,6 +216,13 @@ minimize_button = QPushButton("Minimize App")
 minimize_button.clicked.connect(minimizeApp)
 layout.addWidget(minimize_button)
 
+settings_button = QPushButton("Auto Start")
+settings_button.clicked.connect(open_settings_dialog)
+layout.addWidget(settings_button)
+
+quit_button = QPushButton("Quit")
+quit_button.clicked.connect(quit_app)
+layout.addWidget(quit_button)
 # Start Updating in Loop
 timer = QTimer()
 timer.setInterval(10000)
