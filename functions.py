@@ -2,11 +2,34 @@
 import psutil
 import time
 import constants
+from winshell import startup, CreateShortcut
 
 from constants import watch_list_file
-
-
+from os import path,remove,path
+from sys import argv
 app_start_times = {}
+
+
+def toggle_startup(enable):
+    startup_folder = startup()
+
+    # Get the path to your Python script or application executable
+    script_path = path.abspath(argv[0])
+
+    if enable:
+        # Add the application to the Startup folder
+        shortcut_path = path.join(startup_folder, "MyApp.lnk")
+        CreateShortcut(
+            Path=shortcut_path,
+            Target=script_path,
+            Description="My Application"
+        )
+        print("Added application to Startup folder")
+    else:
+        # Remove the application from the Startup folder
+        shortcut_path = path.join(startup_folder, "MyApp.lnk") #My App can be anything
+        remove(shortcut_path)
+        print("Removed application from Startup folder")
 
 
 def read_watch_list():
