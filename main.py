@@ -18,31 +18,10 @@ app_autostart_enabled = False
 settings_dialog = None
 
 
-
-
-
-# def autostart_checkbox_state_changed(state):
-#     global app_autostart_enabled
-#     app_autostart_enabled = state == Qt.CheckState.Checked
-
-
-# def open_settings_dialog():
-#     global settings_dialog
-#     if not settings_dialog:
-#         settings_dialog = QDialog(window)
-#         settings_dialog.setWindowTitle("Settings")
-#         layout = QVBoxLayout(settings_dialog)
-
-#         autostart_checkbox = QCheckBox("Auto-Start on Login")
-#         autostart_checkbox.stateChanged.connect(autostart_checkbox_state_changed)
-#         layout.addWidget(autostart_checkbox)
-
-#         settings_dialog.setLayout(layout)
-
-#     settings_dialog.exec()
-
-
 def quit_app():
+    """
+    The function `quit_app()` removes a desktop entry file if it exists and then quits the application.
+    """
     if not app_autostart_enabled:
         desktop_entry_path = os.path.expanduser("~/.config/autostart/app_monitor.desktop")
         if os.path.exists(desktop_entry_path):
@@ -71,12 +50,29 @@ def update_watched_app_model(watch_list):
 
 
 def on_popup_finished(result, app_name):
+    """
+    The function `on_popup_finished` adds the `app_name` to the `ignore_list` if the `result` is equal
+    to `QMessageBox.StandardButton.Close` and then prints the `ignore_list`.
+    
+    :param result: The result parameter is the button that was clicked in the popup dialog. It is of
+    type QMessageBox.StandardButton, which is an enumeration of the standard buttons that can be clicked
+    in a QMessageBox dialog
+    :param app_name: The `app_name` parameter is a string that represents the name of the application
+    """
     if result == QMessageBox.StandardButton.Close:
         ignore_list.append(app_name)
         print(ignore_list)
 
 
 def check_the_limit(watch_list):
+    """
+    The function `check_the_limit` checks the usage time of applications in a watch list and displays a
+    popup message if the usage time exceeds the time limit, unless the application is in the ignore
+    list.
+    
+    :param watch_list: The `watch_list` parameter is a list of tuples where each tuple contains the name
+    of an application and its duration
+    """
     for app_name, duration in watch_list:
         if get_application_usage_time(app_name) > get_time_limit(app_name):
             if app_name not in ignore_list:
@@ -109,6 +105,10 @@ def quit_app():
 
 
 def update_button_clicked():
+    """
+    The function `update_button_clicked()` updates the data in the model based on the app list and watch
+    list, and checks if the watch list has reached its limit.
+    """
     watch_list = read_watch_list()
     app_data = update_app_list()
 
@@ -118,12 +118,19 @@ def update_button_clicked():
 
 
 def addtolist_button_clicked():
+    """
+    The function adds the selected item from a list to another function for tracking application time.
+    """
     selected_indexes = app_list.selectedIndexes()
     if selected_indexes:
         track_application_time(selected_indexes[0].data())
 
 
 def modify_time_button_clicked():
+    """
+    The function `modify_time_button_clicked()` modifies the duration of a selected item in a watched
+    app list based on the value entered in the `modify_time_value` text field.
+    """
     selected_indexes = watched_app_list.selectedIndexes()
     if modify_time_value.text().isdecimal():
         duration = int(modify_time_value.text())
@@ -133,14 +140,17 @@ def modify_time_button_clicked():
 
 
 def startup_checkbox_state_changed():
-    print("is_startup_enabled           : ",is_startup_enabled())
-    print("bool(is_startup_enabled)     : ",bool(is_startup_enabled()))
-    print("startup_checkbox.isChecked() : ",startup_checkbox.isChecked())
+    """
+    The function `startup_checkbox_state_changed()` toggles the startup state based on the value of the
+    startup checkbox.
+    """
     enable_startup = startup_checkbox.isChecked()
     toggle_startup(enable_startup)
-    #startup_checkbox.setChecked(bool(is_startup_enabled))
 
 def removefromlist_button_clicked():
+    """
+    The function removes the selected item from a list and stops tracking its application time.
+    """
     selected_indexes = watched_app_list.selectedIndexes()
     if selected_indexes:
         stop_tracking_application_time(selected_indexes[0].data())
@@ -204,10 +214,6 @@ layout.addWidget(modify_time_button)
 minimize_button = QPushButton("Minimize App")
 minimize_button.clicked.connect(minimizeApp)
 layout.addWidget(minimize_button)
-
-# settings_button = QPushButton("Auto Start")
-# settings_button.clicked.connect(open_settings_dialog)
-# layout.addWidget(settings_button)
 
 startup_checkbox = QCheckBox("Enable Startup")
 print(is_startup_enabled())
