@@ -1,3 +1,3 @@
-QuickLook.exe,22
-chrome.exe,200
-msedge.exe,50
+QuickLook.exe,1000
+chrome.exe,2000
+msedge.exe,3000

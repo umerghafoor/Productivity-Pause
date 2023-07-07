@@ -1,10 +1,12 @@
+from msilib.schema import SelfReg
 import time
 import sys, os
+from typing import Self
 import functions
 import constants
 
 from constants import watch_list_file, icon
-from functions import get_running_apps, track_application_time, modify_duration, stop_tracking_application_time, update_app_list, read_watch_list
+from functions import get_running_apps, is_startup_enabled, toggle_startup, track_application_time, modify_duration, stop_tracking_application_time, update_app_list, read_watch_list
 from functions import get_application_usage_time, get_time_limit
 from PyQt6.QtCore import QTimer, Qt, QTimer
 from PyQt6.QtGui import QStandardItemModel, QStandardItem, QIcon, QAction
@@ -19,25 +21,25 @@ settings_dialog = None
 
 
 
-def autostart_checkbox_state_changed(state):
-    global app_autostart_enabled
-    app_autostart_enabled = state == Qt.CheckState.Checked
+# def autostart_checkbox_state_changed(state):
+#     global app_autostart_enabled
+#     app_autostart_enabled = state == Qt.CheckState.Checked
 
 
-def open_settings_dialog():
-    global settings_dialog
-    if not settings_dialog:
-        settings_dialog = QDialog(window)
-        settings_dialog.setWindowTitle("Settings")
-        layout = QVBoxLayout(settings_dialog)
+# def open_settings_dialog():
+#     global settings_dialog
+#     if not settings_dialog:
+#         settings_dialog = QDialog(window)
+#         settings_dialog.setWindowTitle("Settings")
+#         layout = QVBoxLayout(settings_dialog)
 
-        autostart_checkbox = QCheckBox("Auto-Start on Login")
-        autostart_checkbox.stateChanged.connect(autostart_checkbox_state_changed)
-        layout.addWidget(autostart_checkbox)
+#         autostart_checkbox = QCheckBox("Auto-Start on Login")
+#         autostart_checkbox.stateChanged.connect(autostart_checkbox_state_changed)
+#         layout.addWidget(autostart_checkbox)
 
-        settings_dialog.setLayout(layout)
+#         settings_dialog.setLayout(layout)
 
-    settings_dialog.exec()
+#     settings_dialog.exec()
 
 
 def quit_app():
@@ -130,6 +132,14 @@ def modify_time_button_clicked():
             modify_duration(selected_indexes[0].data(), duration)
 
 
+def startup_checkbox_state_changed():
+    print("is_startup_enabled           : ",is_startup_enabled())
+    print("bool(is_startup_enabled)     : ",bool(is_startup_enabled()))
+    print("startup_checkbox.isChecked() : ",startup_checkbox.isChecked())
+    enable_startup = startup_checkbox.isChecked()
+    toggle_startup(enable_startup)
+    #startup_checkbox.setChecked(bool(is_startup_enabled))
+
 def removefromlist_button_clicked():
     selected_indexes = watched_app_list.selectedIndexes()
     if selected_indexes:
@@ -195,9 +205,16 @@ minimize_button = QPushButton("Minimize App")
 minimize_button.clicked.connect(minimizeApp)
 layout.addWidget(minimize_button)
 
-settings_button = QPushButton("Auto Start")
-settings_button.clicked.connect(open_settings_dialog)
-layout.addWidget(settings_button)
+# settings_button = QPushButton("Auto Start")
+# settings_button.clicked.connect(open_settings_dialog)
+# layout.addWidget(settings_button)
+
+startup_checkbox = QCheckBox("Enable Startup")
+print(is_startup_enabled())
+startup_checkbox.setChecked(is_startup_enabled())
+startup_checkbox.stateChanged.connect(startup_checkbox_state_changed)
+layout.addWidget(startup_checkbox)
+
 
 quit_button = QPushButton("Quit")
 quit_button.clicked.connect(quit_app)

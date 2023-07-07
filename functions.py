@@ -2,34 +2,79 @@
 import psutil
 import time
 import constants
-from winshell import startup, CreateShortcut
+import os
+import winreg as reg
+import winreg as reg
 
+from winshell import startup, CreateShortcut
 from constants import watch_list_file
 from os import path,remove,path
 from sys import argv
 app_start_times = {}
 
 
-def toggle_startup(enable):
-    startup_folder = startup()
+def is_startup_enabled():
+    """
+    The function `is_startup_enabled` checks whether the application is set as a startup item in Windows.
 
-    # Get the path to your Python script or application executable
-    script_path = path.abspath(argv[0])
+    :return: Returns `True` if the application is set as a startup item, `False` otherwise.
+    """
+    script_path = os.path.abspath(__file__)
+
+    key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+    key = reg.HKEY_CURRENT_USER
+
+    try:
+        reg_key = reg.OpenKey(key, key_path, 0, reg.KEY_READ)
+        value_count = reg.QueryInfoKey(reg_key)[1]
+        for i in range(value_count):
+            value_name = reg.EnumValue(reg_key, i)[0]
+            if value_name == "MyApp":
+                reg.CloseKey(reg_key)
+                return True
+        reg.CloseKey(reg_key)
+    except Exception as e:
+        print("Error: ", e)
+
+    return False
+
+
+def toggle_startup(enable):
+    """
+    The function `toggle_startup` adds or removes a shortcut to the application in the user's startup
+    folder based on the `enable` parameter.
+
+    :param enable: The `enable` parameter is a boolean value that determines whether to add or remove
+    the application from the startup folder. If `enable` is `True`, the application will be added to the
+    startup folder. If `enable` is `False`, the application will be removed from the startup folder
+    """
+    script_path = os.path.abspath(__file__)
+
+    key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+    key = reg.HKEY_CURRENT_USER
 
     if enable:
-        # Add the application to the Startup folder
-        shortcut_path = path.join(startup_folder, "MyApp.lnk")
-        CreateShortcut(
-            Path=shortcut_path,
-            Target=script_path,
-            Description="My Application"
-        )
-        print("Added application to Startup folder")
+        reg_value_name = "MyApp"
+        reg_value_data = script_path
+
+        try:
+            reg.CreateKey(key, key_path)
+            reg_key = reg.OpenKey(key, key_path, 0, reg.KEY_WRITE)
+            reg.SetValueEx(reg_key, reg_value_name, 0, reg.REG_SZ, reg_value_data)
+            reg.CloseKey(reg_key)
+            print("Added application to startup")
+        except Exception as e:
+            print("Error: ", e)
     else:
-        # Remove the application from the Startup folder
-        shortcut_path = path.join(startup_folder, "MyApp.lnk") #My App can be anything
-        remove(shortcut_path)
-        print("Removed application from Startup folder")
+        reg_value_name = "MyApp"
+
+        try:
+            reg_key = reg.OpenKey(key, key_path, 0, reg.KEY_WRITE)
+            reg.DeleteValue(reg_key, reg_value_name)
+            reg.CloseKey(reg_key)
+            print("Removed application from startup")
+        except Exception as e:
+            print("Error: ", e)
 
 
 def read_watch_list():
