@@ -40,7 +40,7 @@ python main.pyw
 Contributions are welcome! If you have any ideas, suggestions, or bug fixes, please open an issue or submit a pull request.
 
 ## License
-ProductivityPause is open source.
+ProductivityPause is open source project licensed under the [MIT License](LICENSE).
 
 ## Acknowledgements
 This app was inspired by the need for better time management and productivity in today's fast-paced world.
